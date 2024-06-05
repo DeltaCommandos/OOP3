@@ -180,15 +180,55 @@ using OOP3;
                         {
                             if (OrgExists(orgid))
                             {
-                                reader = cmd.ExecuteReader();
-                                if (reader.HasRows)
+                            reader = cmd.ExecuteReader();
+                            if (reader.HasRows)
                                 {
-                                    cmd.Dispose();
-                                    reader.Close();
-                                    cmd.CommandText = $"insert into \"Characters\"(name,age,org_id) values('{chname}',{chage},{orgid})";
-                                    cmd.ExecuteNonQuery();
-                                }
-                            }
+								reader.Close();
+
+								Console.WriteLine("Введите id фрукта");
+								cmd.CommandText = "select * from \"Devil_Fruits\"";
+
+								reader = cmd.ExecuteReader();
+								if (reader.HasRows)
+								{
+									while (reader.Read())
+									{
+										Console.Write(reader.GetInt32(0));
+										Console.Write(" - ");
+										Console.WriteLine(reader.GetString(1));
+									}
+								}
+								cmd.Dispose();
+								reader.Close();
+
+								int devilid = 0;
+								if (int.TryParse(Console.ReadLine(), out devilid))
+								{
+									if (DFExists(orgid))
+									{
+										reader = cmd.ExecuteReader();
+
+										if (reader.HasRows)
+										{
+											cmd.Dispose();
+											reader.Close();
+											cmd.CommandText = $"insert into \"Characters\"(name,age,org_id, devil_id) values('{chname}',{chage},{orgid},{devilid})";
+											cmd.ExecuteNonQuery();
+										}
+									}
+									else
+									{
+										Console.WriteLine("Нет такого id");
+									}
+
+								}
+								else
+								{
+									Console.WriteLine("Некорректный ввод!");
+								}
+
+							}
+						}
                             else
                             {
                                 Console.WriteLine("Нет такого id");
@@ -198,7 +238,8 @@ using OOP3;
                         {
                             Console.WriteLine("Некорректный ввод!");
                         }
-                        break;
+
+					break;
                     case 2:
                         //reader = cmd.ExecuteReader();
                         //if (reader.HasRows)
@@ -267,7 +308,8 @@ using OOP3;
                             {
                                 case 1://all
 
-                                    cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id order by \"Characters\".id ";
+                                cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id \r\norder by \"Characters\".id";
+
                                     reader = cmd.ExecuteReader();
                                     while (reader.Read())
                                     {
@@ -277,13 +319,13 @@ using OOP3;
                                     reader.Close();
                                     break;
                                 case 2://id
-                                    Console.WriteLine("Введите id: ");
+                                    Console.WriteLine("Введите id организации: ");
                                     int cid = 0;
                                     if (int.TryParse(Console.ReadLine(), out cid))
                                     {
                                         if (CharExists(cid))
                                         {
-                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id where \"Characters\".id = {cid} ";
+                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id where \"Characters\".id = {cid} ";
                                             reader = cmd.ExecuteReader();
                                             while (reader.Read())
                                             {
@@ -305,7 +347,7 @@ using OOP3;
 
                                 case 3://org
                                     Console.WriteLine("Введите id организации: ");
-                                    cmd.CommandText = "select * from \"Organisation\"";
+                                    cmd.CommandText = "select * from \"Devil_Fruits\"";
                                     reader = cmd.ExecuteReader();
                                     if (reader.HasRows)
                                     {
@@ -324,7 +366,7 @@ using OOP3;
                                     {
                                         if (OrgExists(mid))
                                         {
-                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id where \"Characters\".org_id = {mid} order by \"Characters\".id ";
+                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id where \"Characters\".org_id = {mid} order by \"Characters\".id ";
                                             reader = cmd.ExecuteReader();
                                             while (reader.Read())
                                             {
@@ -351,7 +393,7 @@ using OOP3;
                                     {
                                         if (AgeExists(agid))
                                         {
-                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id where \"Characters\".age = {agid} order by \"Characters\".id";
+                                            cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id where \"Characters\".age = {agid} order by \"Characters\".id";
                                             reader = cmd.ExecuteReader();
                                             while (reader.Read())
                                             {
@@ -562,7 +604,17 @@ using OOP3;
                     case 1:
                         int str_ID = 0;
                         Console.WriteLine("Введите id строки которую хотите изменить");
-                        if (int.TryParse(Console.ReadLine(), out str_ID))
+					    cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id \r\norder by \"Characters\".id";
+
+					    reader = cmd.ExecuteReader();
+					    while (reader.Read())
+					    {
+						    Console.WriteLine("Айди - {0} Имя - {1} Возраст - {2} Организация - {3} Дьявольский фрукт - {4}", reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2), reader.GetString(3), reader.GetString(4));
+					    }
+					    cmd.Dispose();
+					    reader.Close();
+
+					    if (int.TryParse(Console.ReadLine(), out str_ID))
                         {
                             if (CharExists(str_ID))
                             {
@@ -650,10 +702,19 @@ using OOP3;
                     case 2:
                         int str_ID2 = 0;
                         Console.WriteLine("Введите id строки которую хотите изменить");
-                        if (int.TryParse(Console.ReadLine(), out str_ID2))
-                        {
-                            if (OrgExists(str_ID2))
+					    cmd.CommandText = $"select  \"Organisation\".id, \"Organisation\".name, \"Organisation\".kol_members from \"Organisation\"";
+					    reader = cmd.ExecuteReader();
+					    while (reader.Read())
+					    {
+						    Console.WriteLine("Айди - {0} Название - {1} Количество глав - {2}", reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2));
+					    }
+					    cmd.Dispose();
+					    reader.Close();
+
+					    if (int.TryParse(Console.ReadLine(), out str_ID2))
                             {
+                            if (OrgExists(str_ID2))
+                                {
                                 Console.WriteLine("Что вы хотите изменить?");
                                 Console.WriteLine("\t1. Названия");
                                 Console.WriteLine("\t2. К-во членов");
@@ -680,23 +741,7 @@ using OOP3;
                                             {
                                                 Console.WriteLine("Некоректный Ввод");
                                             }
-                                            break;
-                                            //case 3:
-                                            //    Console.WriteLine("Введите новый id дьявольский фрукт");
-                                            //    int tempauthorid = 0;
-                                            //    if (int.TryParse(Console.ReadLine(), out tempauthorid))
-                                            //    {
-                                            //        if (DFExists(tempauthorid))
-                                            //        {
-                                            //            cmd.CommandText = $"update \"Organisation\" set devil_id = {tempauthorid} where \"Organisation\".id = {str_ID2}";
-                                            //            cmd.ExecuteNonQuery();
-                                            //        }
-                                            //        else
-                                            //        {
-                                            //            Console.WriteLine("Лидера с таким id, не существует");
-                                            //        }
-                                            //    }
-                                            //    break;
+                                            break; 
                                     }
                                 }
                                 else
@@ -706,7 +751,7 @@ using OOP3;
                             }
                             else
                             {
-                                Console.WriteLine("Нет персонада с таким id");
+                                Console.WriteLine("Нет персонажа с таким id");
                             }
                         }
                         else
@@ -717,7 +762,16 @@ using OOP3;
                     case 3:
                         int str_ID3 = 0;
                         Console.WriteLine("Введите id строки которую хотите изменить");
-                        if (int.TryParse(Console.ReadLine(), out str_ID3))
+					    cmd.CommandText = "select * from \"Devil_Fruits\" order by id";
+					    reader = cmd.ExecuteReader();
+					    while (reader.Read())
+					    {
+						    Console.WriteLine("Айди - {0}, Название - {1}", reader.GetInt32(0), reader.GetString(1));
+					    }
+					    cmd.Dispose();
+					    reader.Close();
+
+					    if (int.TryParse(Console.ReadLine(), out str_ID3))
                         {
                             Console.WriteLine("Введите новое название фрукта");
                             string tempDFname = Console.ReadLine();
@@ -751,7 +805,18 @@ using OOP3;
                     case 1:
                         int TEMPMINATOR = 0;
                         Console.WriteLine("Введите id строки которую хотите удалить");
-                        if (int.TryParse(Console.ReadLine(), out TEMPMINATOR))
+					cmd.CommandText = $"select \"Characters\".id, \"Characters\".name, \"Characters\".age, \"Organisation\".name, \"Devil_Fruits\".name from \"Characters\"\r\ninner join \"Organisation\" on \"Characters\".org_id = \"Organisation\".id\r\ninner join \"Devil_Fruits\" on \"Characters\".devil_id = \"Devil_Fruits\".id \r\norder by \"Characters\".id";
+
+					reader = cmd.ExecuteReader();
+					while (reader.Read())
+					{
+						Console.WriteLine("Айди - {0} Имя - {1} Возраст - {2} Организация - {3} Дьявольский фрукт - {4}", reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2), reader.GetString(3), reader.GetString(4));
+					}
+					cmd.Dispose();
+					reader.Close();
+
+
+					if (int.TryParse(Console.ReadLine(), out TEMPMINATOR))
                         {
                             if (CharExists(TEMPMINATOR))
                             {
@@ -771,7 +836,16 @@ using OOP3;
                     case 2:
                         int TEMPMINATOR2 = 0;
                         Console.WriteLine("Введите id строки которую хотите удалить");
-                        if (int.TryParse(Console.ReadLine(), out TEMPMINATOR2))
+					    cmd.CommandText = $"select  \"Organisation\".id, \"Organisation\".name, \"Organisation\".kol_members from \"Organisation\"";
+					    reader = cmd.ExecuteReader();
+					    while (reader.Read())
+					    {
+						    Console.WriteLine("Айди - {0} Название - {1} Количество глав - {2}", reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2));
+					    }
+					    cmd.Dispose();
+					    reader.Close();
+
+					    if (int.TryParse(Console.ReadLine(), out TEMPMINATOR2))
                         {
                             if (CharExists(TEMPMINATOR2))
                             {
@@ -797,9 +871,19 @@ using OOP3;
                         break;
                     case 3:
                         int TEMPMINATOR3 = 0;
+
                         Console.WriteLine("Введите id строки которую хотите удалить");
-                        if (int.TryParse(Console.ReadLine(), out TEMPMINATOR3))
-                        {
+					    cmd.CommandText = "select * from \"Devil_Fruits\" order by id";
+					    reader = cmd.ExecuteReader();
+					    while (reader.Read())
+					    {
+						    Console.WriteLine("Айди - {0}, Название - {1}", reader.GetInt32(0), reader.GetString(1));
+					    }
+					    cmd.Dispose();
+					    reader.Close();
+
+					    if (int.TryParse(Console.ReadLine(), out TEMPMINATOR3))
+                            {
                             if (CharExists(TEMPMINATOR3))
                             {
                                 if (!DFDependet(TEMPMINATOR3))
